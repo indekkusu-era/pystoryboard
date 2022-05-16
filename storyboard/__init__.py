@@ -1,4 +1,3 @@
-from .osuparse import *
+from .helpers.osuparse import *
 from .sb import *
-from .actions import *
-from .images import *
+from .objects import *

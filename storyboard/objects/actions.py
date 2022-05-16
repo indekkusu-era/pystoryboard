@@ -3,13 +3,18 @@ class Action:
     def __init__(self, event_type: str, easing: int, start_time: int, end_time: int, params: list) -> None:
         self.event_type = event_type
         self.easing = easing
-        self.start_time = start_time
-        self.end_time = end_time if end_time != None else ""
+        self.start_time = int(start_time)
+        self.end_time = int(end_time) if end_time != None else ""
         self.params = params
     
     def __repr__(self):
         return self.render()
     
+    def change_offset(self, offset: int):
+        self.start_time += int(offset)
+        if self.end_time != "":
+            self.end_time += int(offset)
+
     def render(self):
         param_text = ""
         for param in self.params:
