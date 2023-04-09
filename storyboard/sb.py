@@ -1,6 +1,6 @@
 from copy import deepcopy as copy
-from .objects import Action, Loop
-from .objects import Sprite, Position
+from objects.sprite import Sprite, Position
+from events.events import Loop, Event
 
 DEFAULT_PATH = ""
 
@@ -24,61 +24,97 @@ class StoryBoard:
         self.Objects['foreground'] = foreground_objects
         self.Objects['overlay'] = overlay_objects
     
-    def render(self):
+    def render(self, optimize=False):
+        if optimize:
+            self.optimize()
         text = self.EVENT_TEXT + \
         self.BACKGROUND_TEXT + "".join([i.render(Position.BACKGROUND) for i in self.Objects['background']]) + \
         self.FAILPASS_TEXT + self.FOREGROUND_TEXT + "".join([i.render(Position.FOREGROUND) for i in self.Objects['foreground']]) + \
         self.OVERLAY_TEXT + "".join([i.render(Position.OVERLAY) for i in self.Objects['overlay']])
         return text + self.SOUND_SAMPLES
+    
+    def get_elements_by_id(self, _id):
+        """Returns the indices of the elements with the specified ID"""
+        ids = {}
+        for layer in self.Objects.keys():
+            ids[layer] = list(filter(lambda x: self.Objects[layer][x]._id == _id, range(len(self.Objects[layer]))))
+        return ids
 
     @staticmethod
     def is_sprite(text):
         return "Sprite" in text
     
     @staticmethod
-    def is_loop_action(text):
+    def is_loop_event(text):
         return "L" in text
     
     @staticmethod
-    def is_in_loop_action(text):
+    def is_in_loop_event(text):
         return "  " in text
     
     @staticmethod
-    def is_action(text):
+    def is_event(text):
         return text[0] == " "
+    
+    @staticmethod
+    def _optimize(sprites: list[Sprite]):
+        new_sprite_list = []
+        for i, sprite in enumerate(sprites):
+            new_sprite = copy(sprite)
+            event_starts = [event.start_time for event in sprite.event]
+            event_ends = [event.end_time for event in sprite.event]
+            fname = sprite.filename
+            for j, another_sprite in enumerate(sprites):
+                if i == j or fname != another_sprite.filename:
+                    continue
+                for k, event in enumerate(another_sprite.event):
+                    start_time = event.start_time
+                    end_time = event.end_time
+                    intersect = False
+                    for st, et in zip(event_starts, event_ends):
+                        intersect = (st <= end_time <= et) or (end_time >= et and start_time <= et)
+                        if intersect:
+                            break
+                    if not intersect:
+                        new_sprite.add_event(event)
+                        sprites[j].event = another_sprite.event[:k] + another_sprite.event[k+1:]
+            new_sprite_list.append(new_sprite)
+        return new_sprite_list
+    
+    def optimize(self):
+        for key in self.Objects.keys():
+            self.Objects[key] = self._optimize(self.Objects[key])        
 
     @staticmethod
     def parse_sprite(sprite_text: str):
         sprite_details = sprite_text.split(",")
-        sprite_type = sprite_details[0]
-        sprite_overlay = sprite_details[1]
         sprite_alignment = sprite_details[2]
         sprite_filename = sprite_details[3][1:-1]
-        return Sprite(sprite_filename)
+        return Sprite(sprite_filename, sprite_alignment)
 
     @staticmethod
-    def parse_action(action_text: str):
-        action_text = action_text.replace(" ", "")
-        action_details = action_text.split(",")
-        action_type = action_details[0]
-        action_easing = int(action_details[1])
-        action_start = int(action_details[2])
-        if action_details[3]:
-            action_end = int(action_details[3])
+    def parse_event(event_text: str):
+        event_text = event_text.replace(" ", "")
+        event_details = event_text.split(",")
+        event_type = event_details[0]
+        event_easing = int(event_details[1])
+        event_start = int(event_details[2])
+        if event_details[3]:
+            event_end = int(event_details[3])
         else:
-            action_end = action_start
-        action_params = []
-        for dt in action_details[4:]:
+            event_end = event_start
+        event_params = []
+        for dt in event_details[4:]:
             try:
-                action_params.append(int(dt))
+                event_params.append(int(dt))
             except:
                 try:
-                    action_params.append(float(dt))
+                    event_params.append(float(dt))
                 except:
-                    action_params.append(dt)
+                    event_params.append(dt)
 
             
-        return Action(action_type, action_easing, action_start, action_end, action_params)
+        return Event(event_type, event_easing, event_start, event_end, event_params)
 
     @staticmethod
     def parse_loop(loop_text: str):
@@ -108,8 +144,8 @@ class StoryBoard:
                 current_line = Position.OVERLAY
                 continue
 
-            if currently_in_loop and (not self.is_in_loop_action(line)):
-                current_sprite.add_action(copy(current_loop))
+            if currently_in_loop and (not self.is_in_loop_event(line)):
+                current_sprite.add_event(copy(current_loop))
                 currently_in_loop = False
             
             if self.is_sprite(line):
@@ -124,26 +160,25 @@ class StoryBoard:
                 current_sprite = self.parse_sprite(line)
                 continue
             
-            if self.is_loop_action(line):
+            if self.is_loop_event(line):
                 current_loop = self.parse_loop(line)
                 currently_in_loop = True
                 continue
 
             if currently_in_loop:
-                current_loop.actions.append(self.parse_action(line))
+                current_loop.events.append(self.parse_event(line))
                 continue
 
-            if self.is_action(line):
-                current_sprite.add_action(self.parse_action(line))
+            if self.is_event(line):
+                current_sprite.add_event(self.parse_event(line))
 
         osb.close()
         return self
     
     def merge(self, sb2):
         t = copy(self)
-        t.background_object += sb2.background_object
-        t.foreground_object += sb2.foreground_object
-        t.overlay_object += sb2.overlay_object
+        for key in ['background', 'foreground', 'overlay']:
+            t.Objects[key] += sb2.Objects[key]
         return t
     
     def add_sprite(self, position: str, sprite: Sprite):
@@ -160,12 +195,13 @@ class StoryBoard:
             for i in range(len(self.Objects[k])):
                 self.Objects[k][i].change_offset(offset)
 
-    def osb(self, osb_fp):
+    def osb(self, osb_fp, optimize=False):
         with open(osb_fp, 'w+') as osb:
-            osb.write(self.render())
+            osb.write(self.render(optimize))
 
 def merge_sb(f1, f2):
     sb1 = StoryBoard().from_osb(f1)
     sb2 = StoryBoard().from_osb(f2)
 
     return sb1.merge(sb2)
+    
