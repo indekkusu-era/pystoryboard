@@ -19,5 +19,5 @@ class ThreeDimensionsMove(Event):
     def render(self, camera: Camera):
         """To be fixed"""
         move_event, scale_event = self._transform(camera)
-        return move_event.render() + "\n" + scale_event.render() 
+        return [move_event.render(), scale_event.render()] 
         
