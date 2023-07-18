@@ -1,5 +1,38 @@
+import numpy as np
 from .events import Event, Move, Scale
 from three_dimensions.camera_3d import Camera
+
+def sample(z0, z1, eps=1e-2):
+    """Sample the z coordinates for approximating size linearly"""
+    z_sample = z0
+    t = 0
+    eps = min(1 / max(z0, z1), eps) 
+    if z0 > z1:
+        s0 = 1 / z0
+        s1_bound = eps + s0 + 2 * np.sqrt(s0 * eps)
+        z1_bound = 1 / s1_bound
+        while z_sample > z1:
+            t = (z_sample - z0) / (z1 - z0)
+            yield 1 / z_sample, t
+            z_sample = z1_bound
+            s0 = 1 / z_sample
+            s1_bound = eps + s0 + 2 * np.sqrt(s0 * eps)
+            z1_bound = 1 / s1_bound
+    elif z0 < z1:
+        s0 = 1 / z0
+        s1_bound = eps + s0 - 2 * np.sqrt(s0 * eps)
+        z1_bound = 1 / s1_bound
+        while z_sample < z1:
+            t = (z_sample - z0) / (z1 - z0)
+            yield 1 / z_sample, t
+            z_sample = z1_bound
+            s0 = 1 / z_sample
+            s1_bound = eps + s0 - 2 * np.sqrt(s0 * eps)
+            z1_bound = 1 / s1_bound
+    else:
+        yield 1 / z0, 0
+        yield 1 / z1, 1
+    yield 1 / z1, 1
 
 class ThreeDimensionsMove(Event):
     def __init__(self, easing: int, start_time: int, end_time: int, start_3d_position: tuple[int], end_3d_position: tuple[int]) -> None:

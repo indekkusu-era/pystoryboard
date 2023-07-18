@@ -70,6 +70,7 @@ def parse_midi(midifp: str):
         if isinstance(event, TempoEvent):
             current_tempo = event
             event.timestamp = event_timestamp
+            current_tempo_timestamp = event_timestamp
             yield event
         if isinstance(event, PitchEvent):
             event.timestamp = event_timestamp

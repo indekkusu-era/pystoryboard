@@ -1,6 +1,7 @@
 from copy import deepcopy as copy
 from objects.sprite import Sprite, Position
 from events.events import Loop, Event
+# from ..utils.position_converter import PositionConfig
 
 DEFAULT_PATH = ""
 
@@ -12,33 +13,30 @@ class StoryBoard:
     OVERLAY_TEXT = "//Storyboard Layer 4 (Overlay)\n"
     SOUND_SAMPLES = "//Storyboard Sound Samples"
 
-    # refactored code
     Objects = {
         'background': [],
         'foreground': [],
         'overlay': []
     }
 
-    def __init__(self, background_objects=[], foreground_objects=[], overlay_objects=[]) -> None:
+    def __init__(self, background_objects=None, foreground_objects=None, overlay_objects=None) -> None:
+        if not background_objects:
+            background_objects = list()
+        if not foreground_objects: 
+            foreground_objects = list()
+        if not overlay_objects:
+            overlay_objects = list()
         self.Objects['background'] = background_objects
         self.Objects['foreground'] = foreground_objects
         self.Objects['overlay'] = overlay_objects
     
-    def render(self, optimize=False):
-        if optimize:
-            self.optimize()
+
+    def render(self):
         text = self.EVENT_TEXT + \
         self.BACKGROUND_TEXT + "".join([i.render(Position.BACKGROUND) for i in self.Objects['background']]) + \
         self.FAILPASS_TEXT + self.FOREGROUND_TEXT + "".join([i.render(Position.FOREGROUND) for i in self.Objects['foreground']]) + \
         self.OVERLAY_TEXT + "".join([i.render(Position.OVERLAY) for i in self.Objects['overlay']])
         return text + self.SOUND_SAMPLES
-    
-    def get_elements_by_id(self, _id):
-        """Returns the indices of the elements with the specified ID"""
-        ids = {}
-        for layer in self.Objects.keys():
-            ids[layer] = list(filter(lambda x: self.Objects[layer][x]._id == _id, range(len(self.Objects[layer]))))
-        return ids
 
     @staticmethod
     def is_sprite(text):
@@ -55,31 +53,6 @@ class StoryBoard:
     @staticmethod
     def is_event(text):
         return text[0] == " "
-    
-    @staticmethod
-    def _optimize(sprites: list[Sprite]):
-        new_sprite_list = []
-        for i, sprite in enumerate(sprites):
-            new_sprite = copy(sprite)
-            event_starts = [event.start_time for event in sprite.event]
-            event_ends = [event.end_time for event in sprite.event]
-            fname = sprite.filename
-            for j, another_sprite in enumerate(sprites):
-                if i == j or fname != another_sprite.filename:
-                    continue
-                for k, event in enumerate(another_sprite.event):
-                    start_time = event.start_time
-                    end_time = event.end_time
-                    intersect = False
-                    for st, et in zip(event_starts, event_ends):
-                        intersect = (st <= end_time <= et) or (end_time >= et and start_time <= et)
-                        if intersect:
-                            break
-                    if not intersect:
-                        new_sprite.add_event(event)
-                        sprites[j].event = another_sprite.event[:k] + another_sprite.event[k+1:]
-            new_sprite_list.append(new_sprite)
-        return new_sprite_list
     
     def optimize(self):
         for key in self.Objects.keys():
@@ -195,9 +168,9 @@ class StoryBoard:
             for i in range(len(self.Objects[k])):
                 self.Objects[k][i].change_offset(offset)
 
-    def osb(self, osb_fp, optimize=False):
+    def osb(self, osb_fp):
         with open(osb_fp, 'w+') as osb:
-            osb.write(self.render(optimize))
+            osb.write(self.render())
 
 def merge_sb(f1, f2):
     sb1 = StoryBoard().from_osb(f1)

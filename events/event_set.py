@@ -1,16 +1,14 @@
 from abc import ABC, abstractmethod
 from .events import Event, Move
-from midiparser import parse_midi
-from midiparser.parser import PitchEvent, TimeSignatureEvent, TempoEvent
+from midiparser.midi_parser import parse_midi, PitchEvent, TimeSignatureEvent, TempoEvent
 from random import uniform
-from objects import Sprite, Animation
 
 class BaseEventSet(ABC):
     def __init__(self, gen_event_function):
         self._gen_event_function = gen_event_function
     
     @abstractmethod
-    def render(self) -> list[Sprite]:
+    def render(self) -> list:
         ...
 
 class EventSet(BaseEventSet):
@@ -55,12 +53,3 @@ class MIDIEventSet(TimeStampEventSet):
                 all_sprites.extend(self._gen_event_function(tempo=event))
         return all_sprites
 
-if __name__ == "__main__":
-    @TimeStampEventSet
-    def Rain(t: int):
-        rain = Sprite('rain.png')
-        rng = uniform(0, 640)
-        rain.add_event(Move(0, t, t+1000, (rng, 0), (rng, 480)))
-        yield rain
-
-    Rain.render([10,20,30])

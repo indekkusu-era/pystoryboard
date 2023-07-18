@@ -113,3 +113,6 @@ class Loop():
     def end_time(self):
         loop_time = max([Event.end_time for Event in self.Events])
         return self.start_time + loop_time * self.loop_count
+
+def compose(event1: Type[Event], event2: Type[Event]):
+    ...

@@ -5,7 +5,6 @@ from typing_extensions import Literal
 from enum import Enum
 from PIL import Image
 from events import Event
-from events.events import PixelScale
 from pipe import traverse
 
 class Position(Enum):
@@ -18,10 +17,9 @@ class ImageNotFoundError(Exception):
         super().__init__(message)
 
 class Sprite:
-    def __init__(self, file_name, align='Centre', origin=(320, 240), id=None):
+    def __init__(self, file_name, align='Centre', origin=(320, 240)):
         self.filename = file_name
         self.align = align
-        self._id = id
         self._origin = origin
         self.events = list()
     
@@ -58,10 +56,10 @@ class Sprite:
             Position.FOREGROUND: "Foreground",
             Position.OVERLAY: "Overlay"
         }
-        sprite_data = f'Sprite, {string[pos]}, {self.align}, "{self.filename}", {",".join(self._origin)}\n'
+        sprite_data = f'Sprite,{string[pos]},{self.align},"{self.filename}",{str(self._origin)[1:-1]}\n '
         event_render_text = []
         for event in events:
-            event_render_text.append(event.render())
+            event_render_text.append(self.render_event(event))
         
         event_data = "\n ".join(event_render_text | traverse)
         text = sprite_data + event_data
@@ -69,4 +67,3 @@ class Sprite:
 
     def render(self, pos: Literal[Position.BACKGROUND, Position.FOREGROUND, Position.OVERLAY]):
         return self._render(pos, self.events)
-        
