@@ -1,6 +1,6 @@
 from copy import deepcopy as copy
-from objects.sprite import Sprite, Position
-from events.events import Loop, Event
+from ..objects.sprite import Sprite, Position
+from ..events.events import Loop, Event
 # from ..utils.position_converter import PositionConfig
 
 DEFAULT_PATH = ""

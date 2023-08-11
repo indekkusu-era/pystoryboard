@@ -1,16 +1,10 @@
 import os
-from tqdm import tqdm
 from typing import Type, Iterable
 from typing_extensions import Literal
-from enum import Enum
 from PIL import Image
-from events import Event
+from ..events import Event
+from ..enums import Layers
 from pipe import traverse
-
-class Position(Enum):
-    BACKGROUND = 0
-    FOREGROUND = 1
-    OVERLAY = 2
 
 class ImageNotFoundError(Exception):
     def __init__(self, message) -> None:
@@ -44,26 +38,22 @@ class Sprite:
         return self
     
     def render_event(self, event: Type[Event]):
-        kwargs = {
-            'image_size': self.image_size,
-        }
-
-        return event.render(**kwargs)
+        return event.render()
 
     def _render(self, pos, events: list[Type[Event]]):
         string = {
-            Position.BACKGROUND: "Background",
-            Position.FOREGROUND: "Foreground",
-            Position.OVERLAY: "Overlay"
+            Layers.BACKGROUND: "Background",
+            Layers.FOREGROUND: "Foreground",
+            Layers.OVERLAY: "Overlay"
         }
-        sprite_data = f'Sprite,{string[pos]},{self.align},"{self.filename}",{str(self._origin)[1:-1]}\n '
+        sprite_data = f'Sprite,{string[pos]},{self.align},"{self.filename}",{str(self._origin)[1:-1].replace(" ", "")}\n '
         event_render_text = []
         for event in events:
-            event_render_text.append(self.render_event(event))
+            event_render_text.append(event.render())
         
         event_data = "\n ".join(event_render_text | traverse)
         text = sprite_data + event_data
         return text + "\n"
 
-    def render(self, pos: Literal[Position.BACKGROUND, Position.FOREGROUND, Position.OVERLAY]):
+    def render(self, pos: Literal[Layers.BACKGROUND, Layers.FOREGROUND, Layers.OVERLAY]):
         return self._render(pos, self.events)

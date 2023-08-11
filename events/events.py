@@ -1,118 +1,69 @@
-from typing import List, Type
-from pipe import traverse
+from typing import Any
+from event_classes import TimeRange, make_event_value, Scalar, Vector, Color, Parameter as _Parameter
+from ..enums import EventType, Easing, Parameters
 
 class Event:
-    def __init__(self, event_type: str, easing: int, start_time: int, end_time: int, *args, **kwargs) -> None:
+    def __init__(self, event_type: EventType, time_range: TimeRange, event_maker: Any, easing: Easing) -> None:
         self.event_type = event_type
         self.easing = easing
-        self.start_time = int(start_time)
-        self.end_time = int(end_time) if end_time != None else ""
-        self.args = args
-        self.kwargs = kwargs
-    
+        self.time_range = time_range
+        self.event_maker = event_maker
+
+    def offset(self, offset: int):
+        self.time_range.offset(offset)
+
     def __repr__(self):
-        return self.render()
-    
-    def change_offset(self, offset: int):
-        self.start_time += int(offset)
-        if self.end_time != "":
-            self.end_time += int(offset)
-        return self
-
-    def render(self, *args, **kwargs):
-        param_text = ""
-        for param in self.args:
-            param_text += ","
-            if isinstance(param, str):
-                param_text += param
-            elif param != None:
-                param_text += param.__repr__()
-            else:
-                continue
-                
-        return f"{self.event_type},{self.easing},{self.start_time},{self.end_time}{param_text}"
-    
-class Scale(Event):
-    def __init__(self, easing: int, start_time: int, end_time:int, start_scale: float, end_scale: float) -> None:
-        self.start_scale, self.end_scale = start_scale, end_scale
-        super().__init__('S', easing, start_time, end_time, start_scale, end_scale)
-
-
-class Move(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, pos_start: tuple, pos_end: tuple) -> None:
-        self.x_start, self.y_start = pos_start
-        self.x_end, self.y_end = pos_end
-        super().__init__('M', easing, start_time, end_time, self.x_start, self.y_start, self.x_end, self.y_end)
-
-class Fade(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, opacity_start: float, opacity_end: float) -> None:
-        self.opacity_start = opacity_start
-        self.opacity_end = opacity_end
-        super().__init__('F', easing, start_time, end_time, opacity_start, opacity_end)
-
-class Rotate(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, angle_start: float, angle_end: float) -> None:
-        self.angle_start = angle_start
-        self.angle_end = angle_end
-        super().__init__('R', easing, start_time, end_time, angle_start, angle_end)
-
-class Color(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, RGB1: tuple, RGB2: tuple):
-        self.r1, self.g1, self.b1 = RGB1
-        self.r2, self.g2, self.b2 = RGB2
-        super().__init__('C', easing, start_time, end_time, self.r1, self.g1, self.b1, self.r2, self.g2, self.b2)
-
-class VectorScale(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, start_size: tuple, end_size: tuple) -> None:
-        self.start_x, self.start_y = start_size
-        self.end_x, self.end_y = end_size
-        super().__init__('V', easing, start_time, end_time, self.start_x, self.start_y, self.end_x, self.end_y)
-
-class MoveX(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, x_start: float, x_end: float) -> None:
-        self.x_start = x_start; self.x_end = x_end
-        super().__init__('MX', easing, start_time, end_time, x_start, x_end)
-
-class MoveY(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, y_start: float, y_end: float) -> None:
-        self.y_start = y_start; self.x_end = y_end
-        super().__init__('MY', easing, start_time, end_time, y_start, y_end)
-
-class PixelScale(Event):
-    def __init__(self, easing: int, start_time: int, end_time: int, start_size: int, end_size: int):
-        self.easing = easing
-        self.start_time = start_time
-        self.end_time = end_time
-        self.start_image_size = start_size
-        self.end_image_size = end_size
-    
-    def render(self, *args, **kwargs):
-        image_size = kwargs.get('image_size')
-        start_size = (self.start_image_size[0] / image_size[0], self.start_image_size[1] / image_size[1])
-        end_size = (self.end_image_size[0] / image_size[0], self.end_image_size[1] / image_size[1])
-        return VectorScale(self.easing, self.start_time, self.end_time, start_size, end_size).render()
-
-class Loop():
-    def __init__(self, start_time: int, loop_count: int, Events: List[Type[Event]]) -> None:
-        self.start_time = start_time
-        self.loop_count = loop_count
-        self.Events = Events
-    
-    def __repr__(self):
-        return self.render()
+        return f"""{self.event_type.name}({self.time_range.__repr__()} | value: {self.event_maker.__repr__()} | easing: {self.easing.name})"""
     
     def render(self):
-        loop_text = f"L,{self.start_time},{self.loop_count}\n  "
-        loop_text += "\n  ".join([Event.render() for Event in self.Events] | traverse)
-        return loop_text
-    
-    def change_offset(self, offset: int):
-        self.start_time += offset
-    
-    @property
-    def end_time(self):
-        loop_time = max([Event.end_time for Event in self.Events])
-        return self.start_time + loop_time * self.loop_count
+        return f"{self.event_type.value},{self.easing.value},{self.time_range.render()},{self.event_maker.render()}"
 
-def compose(event1: Type[Event], event2: Type[Event]):
-    ...
+class ScalarEvent(Event):
+    def __init__(self, event_type: EventType, start_time: int, end_time: int, start_scalar: float, end_scalar: float, easing: Easing):
+        super().__init__(event_type, TimeRange(start_time, end_time), make_event_value(Scalar)(Scalar(start_scalar), Scalar(end_scalar)), easing)
+
+class VectorEvent(Event):
+    def __init__(self, event_type: EventType, start_time: int, end_time: int, start_vector: Vector, end_vector: Vector, easing: Easing):
+        super().__init__(event_type, TimeRange(start_time, end_time), make_event_value(Vector)(start_vector, end_vector), easing)
+
+class ColorEvent(Event):
+    def __init__(self, event_type: EventType, start_time: int, end_time: int, start_color: Color, end_color: Color, easing: Easing):
+        super().__init__(event_type, TimeRange(start_time, end_time), make_event_value(Color)(start_color, end_color), easing)
+
+class Scale(ScalarEvent):
+    def __init__(self, start_time: int, end_time: int, start_scale: float, end_scale: float, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.SCALE, start_time, end_time, start_scale, end_scale, easing)
+
+class Move(VectorEvent):
+    def __init__(self, start_time: int, end_time: int, start_position: Vector, end_position: Vector, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.MOVE, start_time, end_time, start_position, end_position, easing)
+
+class Fade(ScalarEvent):
+    def __init__(self, start_time: int, end_time: int, start_opacity: float, end_opacity: float, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.FADE, start_time, end_time, start_opacity, end_opacity, easing)
+
+class Rotate(ScalarEvent):
+    def __init__(self, start_time: int, end_time: int, start_angle: float, end_angle: float, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.ROTATE, start_time, end_time, start_angle, end_angle, easing)
+
+class Color(ColorEvent):
+    def __init__(self, start_time: int, end_time: int, start_color: Color, end_color: Color, easing=Easing.LINEAR):
+        super().__init__(EventType.COLOR, start_time, end_time, start_color, end_color, easing)
+
+class VectorScale(VectorEvent):
+    def __init__(self, start_time: int, end_time: int, start_vector: Vector, end_vector: Vector, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.VECTORSCALE, start_time, end_time, start_vector, end_vector, easing)
+
+class MoveX(ScalarEvent):
+    def __init__(self, start_time: int, end_time: int, start_x: float, end_x: float, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.MOVEX, start_time, end_time, start_x, end_x, easing)
+
+class MoveY(ScalarEvent):
+    def __init__(self, start_time: int, end_time: int, start_y: float, end_y: float, easing=Easing.LINEAR) -> None:
+        super().__init__(EventType.MOVEY, start_time, end_time, start_y, end_y, easing)
+
+class Parameter(Event):
+    def __init__(self, start_time: int, end_time: int, parameter: Parameters, easing=Easing.LINEAR):
+        super().__init__(EventType.PARAMETER, TimeRange(start_time, end_time), make_event_value(_Parameter)(parameter, parameter), easing)
+
+__all__ = ['Scale', 'Move', 'Fade', 'Rotate', 'Color', 'VectorScale', 'MoveX', 'MoveY', 'Parameter', 'Event']

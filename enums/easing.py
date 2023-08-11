@@ -1,0 +1,40 @@
+from enum import Enum
+
+class Easing(Enum):
+    LINEAR = 0
+    EASING_OUT = 1
+    EASING_IN = 2
+    QUADRATIC_IN = 3
+    QUADRATIC_OUT = 4
+    QUADRATIC_IN_OUT = 5
+    CUBIC_IN = 6
+    CUBIC_OUT = 7
+    CUBIC_IN_OUT = 8
+    QUARTIC_IN = 9
+    QUARTIC_OUT = 10
+    QUARTIC_IN_OUT = 11
+    QUINTIC_IN = 12
+    QUINTIC_OUT = 13
+    QUINTIC_IN_OUT = 14
+    SINE_IN = 15
+    SINE_OUT = 16
+    SINE_IN_OUT = 17
+    EXPONENTIAL_IN = 18
+    EXPONENTIAL_OUT = 19
+    EXPONENTIAL_IN_OUT = 20
+    CIRCLE_IN = 21
+    CIRCLE_OUT = 22
+    CIRCLE_IN_OUT = 23
+    ELASTIC_IN = 24
+    ELASTIC_OUT = 25
+    ELASTIC_HALF_OUT = 26
+    ELASTIC_QUARTER_OUT = 27
+    ELASTIC_IN_OUT = 28
+    BACK_IN = 29
+    BACK_OUT = 30
+    BACK_IN_OUT = 31
+    BOUNCE_IN = 32
+    BOUNCE_OUT = 33
+    BOUNCE_IN_OUT = 34
+
+__all__ = ['Easing']
