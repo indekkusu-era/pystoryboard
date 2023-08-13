@@ -1,59 +1,38 @@
 import os
 from typing import Type, Iterable
-from typing_extensions import Literal
 from PIL import Image
 from ..events import Event
-from ..enums import Layers
-from pipe import traverse
-
-class ImageNotFoundError(Exception):
-    def __init__(self, message) -> None:
-        super().__init__(message)
+from ..events.event_classes import Vector
+from ..enums import Layers, Alignment
 
 class Sprite:
-    def __init__(self, file_name, align='Centre', origin=(320, 240)):
-        self.filename = file_name
-        self.align = align
-        self._origin = origin
-        self.events = list()
+    def __init__(self, file_path: str, layer=Layers.BACKGROUND, origin=Alignment.CENTRE, xy=Vector(320, 240)):
+        self.file_path = file_path
+        self.layer = layer
+        self.origin = origin
+        self.xy = xy
+        self.list_event_generators = []
     
-    def from_image(self, image_content: Image):
-        if os.path.isfile(self.filename):
-            return self
-        image_content.save(self.filename)
-        return self
-    
-    @property
-    def image_size(self):
-        if not os.path.isfile(self.filename):
-            return
-        return Image.open(self.filename).size
-
     def add_event(self, event: Type[Event]):
-        self.events.append(event)
-        return self
-    
-    def add_events(self, events: Iterable[Type[Event]]):
-        self.events.extend(events)
-        return self
-    
-    def render_event(self, event: Type[Event]):
-        return event.render()
+        def _event_gen():
+            yield event
+        self.list_event_generators.append(_event_gen())
 
-    def _render(self, pos, events: list[Type[Event]]):
-        string = {
-            Layers.BACKGROUND: "Background",
-            Layers.FOREGROUND: "Foreground",
-            Layers.OVERLAY: "Overlay"
-        }
-        sprite_data = f'Sprite,{string[pos]},{self.align},"{self.filename}",{str(self._origin)[1:-1].replace(" ", "")}\n '
-        event_render_text = []
-        for event in events:
-            event_render_text.append(event.render())
-        
-        event_data = "\n ".join(event_render_text | traverse)
+    def events(self, timestamp: int):
+        def add_events(event_generator: Iterable[Type[Event]]):
+            def scrolled_events():
+                for event in event_generator():
+                    yield event.offset(timestamp)
+            self.list_event_generators.append(scrolled_events())
+        return add_events
+
+    def render(self):
+        sprite_data = f'Sprite,{self.layer.value},{self.origin},"{self.file_path}",{str(self.xy)[1:-1].replace(" ", "")}\n '
+        event_data = "\n ".join(
+            "\n ".join((event.render() for event in event_generator())) for event_generator in self.list_event_generators
+        )
         text = sprite_data + event_data
         return text + "\n"
-
-    def render(self, pos: Literal[Layers.BACKGROUND, Layers.FOREGROUND, Layers.OVERLAY]):
-        return self._render(pos, self.events)
+    
+    def __repr__(self):
+        return f"Sprite(file_path: {self.file_path}, layer: {self.layer.value}, origin: {self.origin})"

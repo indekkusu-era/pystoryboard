@@ -11,6 +11,7 @@ class Event:
 
     def offset(self, offset: int):
         self.time_range.offset(offset)
+        return self
 
     def __repr__(self):
         return f"""{self.event_type.name}({self.time_range.__repr__()} | value: {self.event_maker.__repr__()} | easing: {self.easing.name})"""
