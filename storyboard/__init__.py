@@ -1,1 +1,1 @@
-from .sb import StoryBoard
+from .storyboard import StoryBoard

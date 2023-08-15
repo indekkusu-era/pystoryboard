@@ -35,4 +35,4 @@ class Sprite:
         return text + "\n"
     
     def __repr__(self):
-        return f"Sprite(file_path: {self.file_path}, layer: {self.layer.value}, origin: {self.origin})"
+        return f"Sprite(file_path: {self.file_path}, layer: {self.layer.name}, origin: {self.origin})"
