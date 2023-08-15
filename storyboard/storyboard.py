@@ -5,7 +5,7 @@ from ..events import Event, LoopEvent
 from ..objects import Sprite
 from ..enums import Layers, StoryboardText
 
-class StoryBoard:
+class Storyboard:
     def __init__(self, objects: Iterable[Sprite]) -> None:
         self.objects = deepcopy(objects)
 
@@ -30,4 +30,4 @@ class StoryBoard:
 def load_osb(osb_file: str):
     raise NotImplementedError()
 
-__all__ = ['StoryBoard']
+__all__ = ['Storyboard']

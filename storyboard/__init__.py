@@ -1,1 +1,1 @@
-from .storyboard import StoryBoard
+from .storyboard import Storyboard
