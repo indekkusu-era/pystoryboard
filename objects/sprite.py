@@ -1,6 +1,5 @@
-import os
+from numpy import float16
 from typing import Type, Iterable
-from PIL import Image
 from ..events import Event
 from ..events.event_classes import Vector
 from ..enums import Layers, Alignment
@@ -18,7 +17,7 @@ class Sprite:
             yield event
         self.list_event_generators.append(_event_gen())
 
-    def events(self, timestamp: int):
+    def events(self, timestamp: int = 0):
         def add_events(event_generator: Iterable[Type[Event]]):
             def scrolled_events():
                 for event in event_generator():
@@ -26,10 +25,10 @@ class Sprite:
             self.list_event_generators.append(scrolled_events())
         return add_events
 
-    def render(self):
+    def render(self, precision=float16):
         sprite_data = f'Sprite,{self.layer.value},{self.origin},"{self.file_path}",{str(self.xy)[1:-1].replace(" ", "")}\n '
         event_data = "\n ".join(
-            "\n ".join((event.render() for event in event_generator())) for event_generator in self.list_event_generators
+            "\n ".join((event.render(precision) for event in event_generator())) for event_generator in self.list_event_generators
         )
         text = sprite_data + event_data
         return text + "\n"

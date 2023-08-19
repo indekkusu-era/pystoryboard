@@ -1,3 +1,4 @@
+from numpy import float16
 from typing import Any
 from event_classes import TimeRange, make_event_value, Scalar, Vector, Color, Parameter as _Parameter
 from ..enums import EventType, Easing, Parameters
@@ -16,8 +17,8 @@ class Event:
     def __repr__(self):
         return f"""{self.event_type.name}({self.time_range.__repr__()} | value: {self.event_maker.__repr__()} | easing: {self.easing.name})"""
     
-    def render(self):
-        return f"{self.event_type.value},{self.easing.value},{self.time_range.render()},{self.event_maker.render()}"
+    def render(self, precision=float16):
+        return f"{self.event_type.value},{self.easing.value},{self.time_range.render()},{self.event_maker.render(precision)}"
 
 class ScalarEvent(Event):
     def __init__(self, event_type: EventType, start_time: int, end_time: int, start_scalar: float, end_scalar: float, easing: Easing):

@@ -1,9 +1,8 @@
 from typing import Iterable
 from copy import deepcopy
 from ..objects.sprite import Sprite
-from ..events import Event, LoopEvent
 from ..objects import Sprite
-from ..enums import Layers, StoryboardText
+from ..enums import StoryboardText
 
 class Storyboard:
     def __init__(self, objects: Iterable[Sprite]) -> None:
