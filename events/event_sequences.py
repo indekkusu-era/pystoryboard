@@ -27,11 +27,11 @@ def _scalar_wrapper(f):
         yield Scalar(i)
 
 class EventSequence:
-    def __init__(self, event_type: EventType, start: int, end: int, sequence_type=IntegerSequence, frame_rate=None, easing=Easing.LINEAR):
+    def __init__(self, event_type: EventType, start: int, end: int, sequence_type=IntegerSequence, frame_rate=24, easing=Easing.LINEAR):
         self.event_type = event_type
         self.start = start
         self.end = end
-        self.frame_rate = frame_rate if frame_rate else 24
+        self.frame_rate = frame_rate
         self.easing = easing
         self.sequence_type=sequence_type
 
@@ -78,19 +78,51 @@ class EventSequence:
         
         return AnonymousEventGenerator
 
-class ScalarSequence(EventSequence):
-    def __init__(self, event_type: EventType, start=None, end=None, frame_rate=None, easing=Easing.LINEAR):
+class ScalarSequenceEvent(EventSequence):
+    def __init__(self, event_type: EventType, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
         super().__init__(event_type, start, end, frame_rate, easing)
     
     def __call__(self, f):
         return super().__call__(_scalar_wrapper(f))
 
-class VectorSequence(EventSequence):
-    def __init__(self, event_type: EventType, start=None, end=None, frame_rate=None, easing=Easing.LINEAR):
+class VectorSequenceEvent(EventSequence):
+    def __init__(self, event_type: EventType, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
         super().__init__(event_type, start, end, frame_rate, easing)
 
-class ColorSequence(EventSequence):
-    def __init__(self, event_type: EventType, start=None, end=None, frame_rate=None, easing=Easing.LINEAR):
+class ColorSequenceEvent(EventSequence):
+    def __init__(self, event_type: EventType, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
         super().__init__(event_type, start, end, frame_rate, easing)
 
-__all__ = []
+class ScaleSequence(ScalarSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.SCALE, start, end, frame_rate, easing)
+
+class MoveSequence(VectorSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.MOVE, start, end, frame_rate, easing)
+
+class FadeSequence(ScalarSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.FADE, start, end, frame_rate, easing)
+
+class RotateSequence(ScalarSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.ROTATE, start, end, frame_rate, easing)
+
+class ColorSequence(ColorSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.COLOR, start, end, frame_rate, easing)
+
+class VectorScaleSequence(VectorSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.VECTORSCALE, start, end, frame_rate, easing)
+
+class MoveXSequence(ScalarSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.MOVEX, start, end, frame_rate, easing)
+
+class MoveYSequence(ScalarSequenceEvent):
+    def __init__(self, start: int, end: int, frame_rate=24, easing=Easing.LINEAR):
+        super().__init__(EventType.MOVEY, start, end, frame_rate, easing)
+
+__all__ = ['ScaleSequence', 'MoveSequence', 'FadeSequence', 'RotateSequence', 'ColorSequence', 'VectorScaleSequence', 'MoveXSequence', 'MoveYSequence']

@@ -1,6 +1,6 @@
 from numpy import float16
 from typing import Any
-from event_classes import TimeRange, make_event_value, Scalar, Vector, Color, Parameter as _Parameter
+from event_classes import TimeRange, make_event_value, Scalar, Vector, Color as _Color, Parameter as _Parameter
 from ..enums import EventType, Easing, Parameters
 
 class Event:
@@ -29,7 +29,7 @@ class VectorEvent(Event):
         super().__init__(event_type, TimeRange(start_time, end_time), make_event_value(Vector)(start_vector, end_vector), easing)
 
 class ColorEvent(Event):
-    def __init__(self, event_type: EventType, start_time: int, end_time: int, start_color: Color, end_color: Color, easing: Easing):
+    def __init__(self, event_type: EventType, start_time: int, end_time: int, start_color: _Color, end_color: _Color, easing: Easing):
         super().__init__(event_type, TimeRange(start_time, end_time), make_event_value(Color)(start_color, end_color), easing)
 
 class Scale(ScalarEvent):
@@ -49,7 +49,7 @@ class Rotate(ScalarEvent):
         super().__init__(EventType.ROTATE, start_time, end_time, start_angle, end_angle, easing)
 
 class Color(ColorEvent):
-    def __init__(self, start_time: int, end_time: int, start_color: Color, end_color: Color, easing=Easing.LINEAR):
+    def __init__(self, start_time: int, end_time: int, start_color: _Color, end_color: _Color, easing=Easing.LINEAR):
         super().__init__(EventType.COLOR, start_time, end_time, start_color, end_color, easing)
 
 class VectorScale(VectorEvent):
