@@ -42,3 +42,5 @@ class Animation:
 
 def create_animation(directory):
     ...
+
+__all__ = ['Animation']
