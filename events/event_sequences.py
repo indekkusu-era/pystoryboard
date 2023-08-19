@@ -1,7 +1,9 @@
 import numpy as np
+from numpy import float16
 from math import ceil
 from ..enums import Easing, EventType
 from .event_classes import Scalar
+from .event_classes import IntegerSequence
 
 """
 # Usage
@@ -25,12 +27,13 @@ def _scalar_wrapper(f):
         yield Scalar(i)
 
 class EventSequence:
-    def __init__(self, event_type: EventType, start: int, end: int, frame_rate=None, easing=Easing.LINEAR):
+    def __init__(self, event_type: EventType, start: int, end: int, sequence_type=IntegerSequence, frame_rate=None, easing=Easing.LINEAR):
         self.event_type = event_type
         self.start = start
         self.end = end
         self.frame_rate = frame_rate if frame_rate else 24
         self.easing = easing
+        self.sequence_type=sequence_type
 
     @property
     def ms_per_frame(self):
@@ -54,11 +57,13 @@ class EventSequence:
             def __init__(self):
                 super().__init__(event_type, start, end, frame_rate, easing)
                 self.f = f
+            
+            @property
+            def sequence(self):
+                return self.sequence_type(np.vectorize(f), self.n_samples)
 
-            def render(self):
-                samples = np.vectorize(f)(np.linspace(0, 1, self.n_samples))
-                render_text = ",".join((x.render() for x in samples))
-                return f'{self.event_type.value},{self.easing.value},{self.start},{self.start+self.ms_per_frame},{render_text}'
+            def render(self, precision=float16):
+                return f'{self.event_type.value},{self.easing.value},{self.start},{self.start+self.ms_per_frame},{self.sequence.render(precision)}'
             
             def __iter__(self):
                 self.activated = False
