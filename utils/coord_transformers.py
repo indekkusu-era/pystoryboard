@@ -1,4 +1,4 @@
-from numpy import sqrt, sin, cos, tan, arccos, arctan 
+from numpy import sqrt, sin, cos, arccos, arctan 
 
 def cartesian_to_cylindrical(x, y, z):
     return sqrt(x ** 2 + y ** 2), arctan(y/x), z

@@ -25,6 +25,7 @@ class Camera:
     def rotation(self, new_rotation):
         self._rotation = new_rotation
 
+    # thanks early 2023 htpln for implementing this feature
     @staticmethod
     def rotation_matrix(theta, phi, psi):
         rx = np.array([[1,0,0], [0,cos(theta),-sin(theta)], [0,sin(theta),cos(theta)]])
@@ -41,5 +42,5 @@ class Camera:
         if inv_size <= 0:
             return (0, 0), 0
 
-        size = 1 / (inv_size * np.tan(self.fov))
+        size = 1 / (inv_size * np.tan(self._fov))
         return (x_2d * size, y_2d * size), size

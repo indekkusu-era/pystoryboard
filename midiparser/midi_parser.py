@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 import py_midicsv as pm
-from enum import Enum
 
 @dataclass
 class PitchEvent:
@@ -88,7 +87,4 @@ def parse_midi(midifp: str):
             event.timestamp = event_timestamp
             yield event
 
-if __name__ == "__main__":
-    events = parse_midi("C://Users/HP/Downloads/among_the_constellation_rh.mid")
-    for event in events:
-        print(event)
+__all__ = ['parse_midi']
