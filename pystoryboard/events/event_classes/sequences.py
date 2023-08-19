@@ -1,3 +1,4 @@
+from typing import Callable
 from abc import ABC, abstractmethod
 import numpy as np
 from numpy import float16
@@ -5,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Sequence(ABC):
-    f: function
+    f: Callable
     n_samples: int
 
     @property
@@ -18,7 +19,7 @@ class Sequence(ABC):
 
 @dataclass
 class RealSequence(Sequence):
-    f: function
+    f: Callable
     n_samples: int
 
     @property
@@ -27,7 +28,7 @@ class RealSequence(Sequence):
 
 @dataclass
 class IntegerSequence(Sequence):
-    f: function
+    f: Callable
     n_samples: int
 
     @property

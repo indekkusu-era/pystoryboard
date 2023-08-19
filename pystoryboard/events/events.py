@@ -1,6 +1,6 @@
 from numpy import float16
 from typing import Any
-from event_classes import TimeRange, make_event_value, Scalar, Vector, Color as _Color, Parameter as _Parameter
+from .event_classes import TimeRange, make_event_value, Scalar, Vector, Color as _Color, Parameter as _Parameter
 from ..enums import EventType, Easing, Parameters
 
 class Event:
