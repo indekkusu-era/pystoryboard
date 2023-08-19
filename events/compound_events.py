@@ -4,7 +4,7 @@ from typing import Iterable, Type, Generator
 from .events import Event
 from ..enums import TriggerEvents, CompoundEventType
 
-class CompoundEvent:
+class CompoundEvent(ABC):
     def __init__(self, event_type: CompoundEventType, start_time: int, events: Iterable[Type[Event]]):
         self.event_type = event_type
         self.start_time = start_time
