@@ -11,4 +11,8 @@ class EventType(Enum):
     MOVEY = 'MY'
     PARAMETER = 'P'
 
-__all__ = ['EventType']
+class CompoundEventType(Enum):
+    LOOP = 'L'
+    TRIGGER = 'T'
+
+__all__ = ['EventType', 'CompoundEventType']
